@@ -23,7 +23,7 @@ public class UIManager : MonoBehaviour
 
     //BeforeQuizStart
     public Text tittleQuiz;
-    public Text textQuiz;
+    public Text textQuiz, textQuiz2, textQuiz3;
     public Sprite cardSprite;
 
     //Scene Number
@@ -34,7 +34,7 @@ public class UIManager : MonoBehaviour
     private GameObject _answersParent;
     private Button[] _answer = new Button[6];
     private Button _cardBtn, _playAgain, _restart, _exit;
-    private Image _imageQuiz;
+    private Image _imageQuiz, _illustration;
 
     //
     int answerInt = 7;
@@ -79,7 +79,15 @@ public class UIManager : MonoBehaviour
         {
             tittleQuiz = GameObject.Find("TittleQuiz").GetComponent<Text>();
             textQuiz = GameObject.Find("TextQuiz").GetComponent<Text>();
+            textQuiz2 = GameObject.Find("TextQuiz2").GetComponent<Text>();
+            textQuiz3 = GameObject.Find("TextQuiz3").GetComponent<Text>();
             _imageQuiz = GameObject.Find("QuizSprite").GetComponent<Image>();
+            _illustration = GameObject.Find("Illustration").GetComponent<Image>();
+            
+            _illustration.enabled = false;
+            _imageQuiz.enabled = false;
+            textQuiz2.enabled = false;
+            textQuiz3.enabled = false;
 
             _answer[0] = GameObject.Find("Cobre").GetComponent<Button>();
             _answer[1] = GameObject.Find("Minerio").GetComponent<Button>();
@@ -149,7 +157,11 @@ public class UIManager : MonoBehaviour
     {
         quizUI = quiz;
         tittleQuiz.text = quiz.quiz;
-        _imageQuiz.sprite = quiz.illustratation;
+        _imageQuiz.sprite = quiz.frame;
+        _imageQuiz.enabled = true;
+        _illustration.sprite = quiz.illustratation;
+        _illustration.GetComponent<RectTransform>().sizeDelta = quiz.sizeImg;
+        _illustration.enabled = true;
         _answersParent.SetActive(true);
         correctAnswer = quiz.answer1;
         if (quiz.hasTwoAnswers)
@@ -178,7 +190,6 @@ public class UIManager : MonoBehaviour
                 else
                 {
                     tittleQuiz.text = "Você acertou. Qual outro minério?";
-                    ScoreManager.Instance.ScoreSub();
                 }
             }
             else
@@ -228,20 +239,26 @@ public class UIManager : MonoBehaviour
         yield return new WaitForSeconds(0.8f);
 
         tittleQuiz.text = "Não foi dessa vez.";
-        textQuiz.text = "Seus pontos acabaram. Tente outra vez. Lembre-se de usar as consultas.";
+        textQuiz2.enabled = true;
+
         _playAgain.gameObject.SetActive(true);
     }
 
     void PlayAgain()
     {
-        if(_panelTip){
+        if (_panelTip)
+        {
             ReturnGame();
         }
         textQuiz.enabled = true;
+        textQuiz2.enabled = false;
+        textQuiz3.enabled = false;
         textQuiz.text = "Toque na carta para começar o jogo.";
         tittleQuiz.text = "Toque na carta para começar o jogo.";
         _cardBtn.interactable = true;
-        _imageQuiz.sprite = cardSprite;
+        _cardBtn.GetComponent<Image>().enabled = true;
+        _imageQuiz.enabled = false;
+        _illustration.enabled = false;
         _playAgain.gameObject.SetActive(false);
         ActiveAnswers();
         ScoreManager.Instance.StartGame();
@@ -286,13 +303,8 @@ public class UIManager : MonoBehaviour
     void GetTips()
     {
         _panelTip.SetActive(true);
-        ScoreManager.Instance.TipSub();
         _imgTip.color = Color.clear;
 
-        if (ScoreManager.Instance.tipsInt == 0)
-        {
-            _getTips.interactable = false;
-        }
     }
 
     void Tip()
@@ -316,6 +328,29 @@ public class UIManager : MonoBehaviour
                 break;
             }
         }
+    }
+
+    public void DesableCards()
+    {
+        _cardBtn.GetComponent<Image>().enabled = false;
+    }
+
+    public void Win()
+    {
+        StopAllCoroutines();
+        StartCoroutine(WinGame());
+    }
+
+    IEnumerator WinGame()
+    {
+        _answersParent.SetActive(false);
+
+        yield return new WaitForSeconds(0.8f);
+
+        tittleQuiz.text = "Parabéns, você conseguiu virar todas as cartas.";
+        textQuiz3.enabled = true;
+
+        _playAgain.gameObject.SetActive(true);
     }
 
 

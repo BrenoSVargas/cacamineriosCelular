@@ -23,7 +23,6 @@ public class ScoreManager : MonoBehaviour
     private Text _scoreTxt;
     private Text _tipsTxt;
     public int score = 3;
-    public int tipsInt = 5;
 
 
     void Awake()
@@ -31,8 +30,6 @@ public class ScoreManager : MonoBehaviour
         _instance = this;
 
         _scoreTxt = GameObject.Find("ScoreTxt").GetComponent<Text>();
-        _tipsTxt = GameObject.Find("TipsText").GetComponent<Text>();
-
 
     }
 
@@ -45,28 +42,14 @@ public class ScoreManager : MonoBehaviour
             score = 0;
         }
 
-        _scoreTxt.text = score.ToString();
+        _scoreTxt.text = score.ToString("D2");
     }
 
-    public void TipSub()
-    {
-        if (tipsInt > 1)
-            tipsInt--;
-        else
-        {
-            tipsInt = 0;
 
-        }
-
-        _tipsTxt.text = tipsInt.ToString();
-    }
     public void StartGame()
     {
         score = 3;
-        _scoreTxt.text = score.ToString();
-
-        tipsInt=5;
-        _tipsTxt.text = tipsInt.ToString();
+        _scoreTxt.text = score.ToString("D2");
 
     }
 

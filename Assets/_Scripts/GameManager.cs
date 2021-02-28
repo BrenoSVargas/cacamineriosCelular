@@ -34,7 +34,7 @@ public class GameManager : MonoBehaviour
 
 
         DontDestroyOnLoad(this.gameObject);
-        
+
         LoadQuestions();
     }
 
@@ -53,10 +53,24 @@ public class GameManager : MonoBehaviour
 
     public void GetRandomQuestion()
     {
-        int var = Random.Range(0, _unanswered.Count);
-        _currentQuestion = _unanswered[var];
-        _unanswered.RemoveAt(var);
-        UIManager.Instance.FormulateQuiz(_currentQuestion);
+        if (_unanswered.Count > 1)
+        {
+            int var = Random.Range(0, _unanswered.Count);
+            _currentQuestion = _unanswered[var];
+            _unanswered.RemoveAt(var);
+            UIManager.Instance.FormulateQuiz(_currentQuestion);
+        }
+        else if (_unanswered.Count == 1)
+        {
+            UIManager.Instance.DesableCards();
+            _currentQuestion = _unanswered[0];
+            _unanswered.RemoveAt(0);
+            UIManager.Instance.FormulateQuiz(_currentQuestion);
+        }
+        else
+        {
+            UIManager.Instance.Win();
+        }
     }
 
     public void StartQuestion(Button btn)

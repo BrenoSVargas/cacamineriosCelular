@@ -21,7 +21,6 @@ public class ScoreManager : MonoBehaviour
     }
 
     private Text _scoreTxt;
-    private Text _tipsTxt;
     public int score = 3;
 
 

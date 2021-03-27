@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity WebGL Player | %UNITY_WEB_NAME%</title>
-    <script src="%UNITY_WEBGL_LOADER_URL%"></script>
+    <title>Unity WebGL Player | Caça aos Minérios</title>
+    <script src="Build/UnityLoader.js"></script>
     <link rel="stylesheet" href="TemplateData/style.css">
     <script src="TemplateData/UnityProgress.js"></script>
     <style>
@@ -38,32 +38,81 @@
             onProgress: UnityProgress
         });
 
-        // Fullscreen
-        var doc = document;
-        var docEl = doc.documentElement;
-
-        function requestFullscreen() {
-            var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-            if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
-                requestFullScreen.call(docEl);
+        (function() {
+            var
+                fullScreenApi = {
+                    supportsFullScreen: false,
+                    isFullScreen: function() {
+                        return false;
+                    },
+                    requestFullScreen: function() {},
+                    cancelFullScreen: function() {},
+                    fullScreenEventName: '',
+                    prefix: ''
+                },
+                browserPrefixes = 'webkit moz o ms khtml'.split(' ');
+            // check for native support
+            if (typeof document.cancelFullScreen != 'undefined') {
+                fullScreenApi.supportsFullScreen = true;
+            } else {
+                // check for fullscreen support by vendor prefix
+                for (var i = 0, il = browserPrefixes.length; i < il; i++) {
+                    fullScreenApi.prefix = browserPrefixes[i];
+                    if (typeof document[fullScreenApi.prefix + 'CancelFullScreen'] != 'undefined') {
+                        fullScreenApi.supportsFullScreen = true;
+                        break;
+                    }
+                }
             }
-        }
-
-        function exitFullscreen() {
-            var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
-            if (doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement) {
-                cancelFullScreen.call(doc);
+            // update methods to do something useful
+            if (fullScreenApi.supportsFullScreen) {
+                fullScreenApi.fullScreenEventName = fullScreenApi.prefix + 'fullscreenchange';
+                fullScreenApi.isFullScreen = function() {
+                    switch (this.prefix) {
+                        case '':
+                            return document.fullScreen;
+                        case 'webkit':
+                            return document.webkitIsFullScreen;
+                        default:
+                            return document[this.prefix + 'FullScreen'];
+                    }
+                }
+                fullScreenApi.requestFullScreen = function(el) {
+                    return (this.prefix === '') ? el.requestFullScreen() : el[this.prefix + 'RequestFullScreen']();
+                }
+                fullScreenApi.cancelFullScreen = function(el) {
+                    return (this.prefix === '') ? document.cancelFullScreen() : document[this.prefix + 'CancelFullScreen']();
+                }
             }
-        }
+            // jQuery plugin
+            if (typeof jQuery != 'undefined') {
+                jQuery.fn.requestFullScreen = function() {
+                    return this.each(function() {
+                        if (fullScreenApi.supportsFullScreen) {
+                            fullScreenApi.requestFullScreen(this);
+                        }
+                    });
+                };
+            }
+            // export api
+            window.fullScreenApi = fullScreenApi;
+        })();
+
 
         window.onload = function() {
-            addFullscreenDiv();
 
-            document.addEventListener("webkitfullscreenchange", function(event) {
-                if (document.webkitIsFullScreen == false) {
-                    addFullscreenDiv();
-                }
-            });
+
+            if( navigator.userAgent.match(/iPhone/i)
+            || navigator.userAgent.match(/iPad/i)
+            || navigator.userAgent.match(/iPod/i))
+            {
+                document.getElementById("gameContainer").style.width = document.getElementsByTagName("body")[0].offsetWidth;
+                document.getElementById("gameContainer").style.height = "100%";
+            }else
+            {
+            addFullscreenDiv();
+            }
+
 
             function removeFullscreenDiv() {
                 var body = document.getElementsByTagName("BODY")[0]
@@ -71,17 +120,17 @@
             }
 
             function addFullscreenDiv() {
-                // create fullscreen div
                 var div = document.createElement('div');
-                var body = document.getElementsByTagName("BODY")[0]
+                var body = document.getElementsByTagName("BODY")[0];
                 body.appendChild(div);
                 div.innerHTML = '<div id="fullScreenToggle"></div>';
-
-                // Add click event listener
-                div.addEventListener("click", function() {
-                    requestFullscreen();
-                    removeFullscreenDiv();
-                }, false);
+                if (fullScreenApi.supportsFullScreen) {
+                    // create fullscreen div
+                    div.addEventListener('click', function() {
+                        fullScreenApi.requestFullScreen(document.documentElement);
+                        removeFullscreenDiv();
+                    }, true);
+                }
             }
         }
     </script>
@@ -89,6 +138,6 @@
 
 <body>
     <div id="gameContainer"></div>
-</body>
+    </body>
 
 </html>
